@@ -26,7 +26,7 @@ TFT_eSPI tft = TFT_eSPI();  // Invoke Display library
 #define scb_ByteValueMaxP1 256
 #define scb_unsBlockSize 256
 #define scb_unsBlockSizeMask (scb_unsBlockSize - 1)
-#define scb_sBlockSize (4*scb_unsBlockSize)
+#define scb_sBlockSize (4*scb_unsBlockSize) //size >= scb_TftMaxLines * scb_TftMaxLineChars!!!
 #define scb_sBlockSizeMask (scb_sBlockSize - 1)
 #define scb_IndexWordSize 256
 #define scb_WordIndexMax (scb_IndexWordSize - 1)
@@ -72,7 +72,7 @@ TFT_eSPI tft = TFT_eSPI();  // Invoke Display library
 
 //DIGIT10:
 
-//#define Dscbd_KeyChange;
+//#define Dscbd_KeyChange
 
 #define scbd_ModeDigit10Enter 60
 #define scbd_ModeDigit10 61
@@ -91,7 +91,6 @@ TFT_eSPI tft = TFT_eSPI();  // Invoke Display library
 
 //SCRAMBLE/UNSCRAMBLE
 
-//#define DtestRand
 //#define DCheckSCBFiles
 //#define Doutput256Randoms
 //#define DoutputscbBytes
@@ -99,7 +98,7 @@ TFT_eSPI tft = TFT_eSPI();  // Invoke Display library
 //#define Dsave_randoms
 //#define Dscbs_rand
 //#define Dscbs_xorUnsBlock
-//#define Dscbs_clearHistograms()
+//#define Dscbs_clearHistograms
 //#define Dscbs_unsBlockHistogram
 //#define Dscbs_randomFillSBlock
 //#define Dscbs_sort
@@ -352,9 +351,7 @@ int scb_rand(const unsigned int mask) {
 #ifdef DEBUGIO
 #ifdef Dscb_rand
   Serial.println("scb_rand():");
-  strcpy(debug_output, "index, scb_current_WordIndex =:");
-  itoa(index, &debug_output[strlen(debug_output)], 10);
-  strcat(debug_output, ", ");
+  strcpy(debug_output, "scb_current_WordIndex =:");
   itoa(scb_current_WordIndex, &debug_output[strlen(debug_output)], 10);
   Serial.println(debug_output);
 #endif
@@ -653,12 +650,12 @@ void scbf_processFiles() {
     tft.println("   View a file:   ");
     scb_inDir = SD.open("UnScrambleOut", FILE_READ);
   }
+  i = 1;
   if (scb_inDir.isDirectory()) {
-    i = 1;
     scb_inFile = scb_inDir.openNextFile(FA_READ | FA_WRITE | FA_OPEN_EXISTING);
     while ((scb_inFile.available()) & (i < scb_TftMaxLines-2)) {
       strcpy(scb_tempName, strrchr(scb_inFile.name(), '/'));  // Strip "0:/.../"!
-      strcpy((char*)&scb_sBlock[i*80], &scb_tempName[1]);
+      strcpy((char*)&scb_sBlock[i*scb_TftMaxLineChars], &scb_tempName[1]);
       if (strlen(scb_tempName) > scb_TftMaxLineChars) {
         scb_tempName[scb_TftMaxLineChars-1] = 0;
       }
@@ -669,12 +666,12 @@ void scbf_processFiles() {
     }
   }
   scb_inDir.close();
-  strcpy((char*)&scb_sBlock[i*80], "New_File?");
   tft.println("New_File?");
+  strcpy((char*)&scb_sBlock[i*scb_TftMaxLineChars], "New_File?");
   i++;
   tft.setTextColor(TFT_GREEN, TFT_DARKGREY);
   tft.println("Skip?");
-  strcpy((char*)&scb_sBlock[i*80], "Skip?");
+  strcpy((char*)&scb_sBlock[i*scb_TftMaxLineChars], "Skip?");
 
   scb_newMode = scbe_ModeLine;
 #ifdef DEBUGIO
@@ -1230,7 +1227,7 @@ void output256Randoms() {
 
   // Clear scbs_sBlockUsedBits:
   i = 0;
-  while (i < scb_unsBlockSize) {
+  while (i < scbs_sBlockUsedBitsSize) {
     scbs_sBlockUsedBits[i] = 0;
     i++;
   }
@@ -1270,14 +1267,13 @@ void output256Randoms() {
 void outputscbBytes() {
   int i;
   int j;
-  struct stat fs;
 
   Serial.println("outputscbByte:");
 
   scb_randSeed = 1703156848;                               // 1 thru 4,294,967,295 PICK ONE!
   scbs_current_WordIndex = 0X000000FF & scb_Word[234];  // 0 thru 255 PICK ONE!
 
-  f_chmod(".scbs_Bytes", 0B010010010, 0);  // Make file deleteable.
+  f_chmod(".scbs_Bytes", 0B0111111, 0);  // Make file deleteable.
   f_unlink(".scbs_Bytes");                 //  Delete file.
   scb_inFile = SD.open(".scbs_Bytes", FA_READ | FA_WRITE | FA_CREATE_ALWAYS | FA_OPEN_ALWAYS);
 
@@ -1298,7 +1294,7 @@ void outputscbBytes() {
 
   // Clear scbs_sBlockUsedBits:
   i = 0;
-  while (i < scb_unsBlockSize) {
+  while (i < scbs_sBlockUsedBitsSize) {
     scbs_sBlockUsedBits[i] = 0;
     i++;
   }
@@ -1330,7 +1326,7 @@ void outputscbBytes() {
   }
 
   scb_inFile.close();
-  f_chmod(".scbs_Bytes", 0B100100100, 0);  // Make file just readable.
+  f_chmod(".scbs_Bytes", 0B0010010, 0);  // Make file just readable.
 }
 #endif
 #endif
@@ -1728,9 +1724,7 @@ int scbs_rand(const unsigned int mask) {
 #ifdef DEBUGIO
 #ifdef Dscbs_rand
   Serial.println("scbs_rand():");
-  strcpy(debug_output, "index, scbs_current_WordIndex =:");
-  itoa(index, &debug_output[strlen(debug_output)], 10);
-  strcat(debug_output, ", ");
+  strcpy(debug_output, "scbs_current_WordIndex =:");
   itoa(scbs_current_WordIndex, &debug_output[strlen(debug_output)], 10);
   Serial.println(debug_output);
 #endif
@@ -1771,7 +1765,7 @@ void scbs_clearHistograms() {
   }
 
 #ifdef DEBUGIO
-#ifdef Dscbs_clearHistograms()
+#ifdef Dscbs_clearHistograms
 
   Serial.println("scbs_clearHistograms():");
 
@@ -2300,19 +2294,19 @@ void scbs_randomLoadSBlock() {
     } while ((scbs_sBlockUsedBits[(r >> 4)] & scbs_SetBitMask[(r & 0X000F)]) > 0);
     scbs_sBlockUsedBits[(r >> 4)] |= scbs_SetBitMask[(r & 0X000F)];
     scb_sBlock[r] = scbs_translationValues[i];
-    i++;
-  }
 #ifdef DEBUGIO
 #ifdef Dscbs_randomLoadSBlock
-  strcpy(debug_output, "scbs_translationValues[i], i, r = ");
-  itoa(scbs_translationValues[i], &debug_output[strlen(debug_output)], 16);
-  strcat(debug_output, ", ");
-  itoa(i, &debug_output[strlen(debug_output)], 10);
-  strcat(debug_output, ", ");
-  itoa(r, &debug_output[strlen(debug_output)], 10);
-  Serial.println(debug_output);
+    strcpy(debug_output, "scbs_translationValues[i], i, r = ");
+    itoa(scbs_translationValues[i], &debug_output[strlen(debug_output)], 16);
+    strcat(debug_output, ", ");
+    itoa(i, &debug_output[strlen(debug_output)], 10);
+    strcat(debug_output, ", ");
+    itoa(r, &debug_output[strlen(debug_output)], 10);
+    Serial.println(debug_output);
 #endif
 #endif
+    i++;
+  }
 
   // Translate & load scbs_sBlock:
   i = 0;
@@ -2322,19 +2316,19 @@ void scbs_randomLoadSBlock() {
     } while ((scbs_sBlockUsedBits[(r >> 4)] & scbs_SetBitMask[(r & 0X000F)]) > 0);
     scbs_sBlockUsedBits[(r >> 4)] |= scbs_SetBitMask[(r & 0X000F)];
     scb_sBlock[r] = scbs_translationValues[scb_unsBlock[i]];
-    i++;
-  }
 #ifdef DEBUGIO
 #ifdef Dscbs_randomLoadSBlock
-  strcpy(debug_output, "scb_unsBlock[i], i, r = ");
-  itoa(scbs_translationValues[i], &debug_output[strlen(debug_output)], 16);
-  strcat(debug_output, ", ");
-  itoa(i, &debug_output[strlen(debug_output)], 10);
-  strcat(debug_output, ", ");
-  itoa(r, &debug_output[strlen(debug_output)], 10);
-  Serial.println(debug_output);
+    strcpy(debug_output, "scb_unsBlock[i], i, r = ");
+    itoa(scbs_translationValues[i], &debug_output[strlen(debug_output)], 16);
+    strcat(debug_output, ", ");
+    itoa(i, &debug_output[strlen(debug_output)], 10);
+    strcat(debug_output, ", ");
+    itoa(r, &debug_output[strlen(debug_output)], 10);
+    Serial.println(debug_output);
 #endif
 #endif
+    i++;
+  }
 
   // Save load/unload randoms:
   scbs_loadSeed = scbs_rand(scbs_dummyModulo);
@@ -2352,7 +2346,9 @@ void scbs_randomLoadSBlock() {
 
 void scbs_scrambleBlock() {
 #ifdef DEBUGIO
+#ifdef Dscbs_scrambleBlock
   int i;
+#endif
 #endif
 
 #ifdef DEBUGIO
@@ -2452,19 +2448,19 @@ void scbs_unloadSBlock() {
     } while ((scbs_sBlockUsedBits[(r >> 4)] & scbs_SetBitMask[(r & 0X000F)]) > 0);
     scbs_sBlockUsedBits[(r >> 4)] |= scbs_SetBitMask[(r & 0X000F)];
     scbs_translationValues[i] = scb_sBlock[r];
-    i++;
-  }
 #ifdef DEBUGIO
 #ifdef Dscbs_unloadSBlock
-  strcpy(debug_output, "scbs_translationValues[i], i, r = ");
-  itoa(scbs_translationValues[i], &debug_output[strlen(debug_output)], 16);
-  strcat(debug_output, ", ");
-  itoa(i, &debug_output[strlen(debug_output)], 10);
-  strcat(debug_output, ", ");
-  itoa(r, &debug_output[strlen(debug_output)], 10);
-  Serial.println(debug_output);
+    strcpy(debug_output, "scbs_translationValues[i], i, r = ");
+    itoa(scbs_translationValues[i], &debug_output[strlen(debug_output)], 16);
+    strcat(debug_output, ", ");
+    itoa(i, &debug_output[strlen(debug_output)], 10);
+    strcat(debug_output, ", ");
+    itoa(r, &debug_output[strlen(debug_output)], 10);
+    Serial.println(debug_output);
 #endif
 #endif
+    i++;
+  }
 
 #ifdef DEBUGIO
 #ifdef Dscbs_selectUnsToSValuesUsingHistograms
@@ -2536,7 +2532,9 @@ void scbs_unloadSBlock() {
 
 void scbs_unscrambleBlock() {
 #ifdef DEBUGIO
+#ifdef Dscbs_unscrambleBlock
   int i;
+#endif
 #endif
 
   scbs_unloadSBlock();
@@ -2757,9 +2755,6 @@ void scbs_scrambleFile() {
 }
 
 void scbs_unscrambleFile() {
-#ifdef DEBUGIO
-  int i;
-#endif
   int count;
 
 #ifdef DEBUGIO
@@ -3260,14 +3255,14 @@ void scbe_LineChange() {
 
   tft.setTextColor(TFT_WHITE, TFT_DARKGREY);
   tft.setCursor(0, (scb5_selectionVPrior*scbe_incrementY));
-  strcpy(&scb_tempName[0], (char*)&scb_sBlock[scb5_selectionVPrior*80]);
+  strcpy(&scb_tempName[0], (char*)&scb_sBlock[scb5_selectionVPrior*scb_TftMaxLineChars]);
   if (strlen(scb_tempName) > scb_TftMaxLineChars) {
     scb_tempName[scb_TftMaxLineChars-1] = 0;
   }
   tft.print(scb_tempName);
   tft.setTextColor(TFT_GREEN, TFT_DARKGREY);
   tft.setCursor(0, (scb5_selectionV*scbe_incrementY));
-  strcpy(&scb_tempName[0], (char*)&scb_sBlock[scb5_selectionV*80]);
+  strcpy(&scb_tempName[0], (char*)&scb_sBlock[scb5_selectionV*scb_TftMaxLineChars]);
   if (strlen(scb_tempName) > scb_TftMaxLineChars) {
     scb_tempName[scb_TftMaxLineChars-1] = 0;
   }
@@ -3331,7 +3326,7 @@ int indexCount = 0;
     } else {
       strcpy(scb_tempName, "UnScrambleOut/");
     }
-    strcat(scb_tempName, (char*)&scb_sBlock[scb5_selectionV*80]);
+    strcat(scb_tempName, (char*)&scb_sBlock[scb5_selectionV*scb_TftMaxLineChars]);
     scb_inFile = SD.open(scb_tempName, FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
 #ifdef DEBUGIO
   if (!scb_inFile.available()) {

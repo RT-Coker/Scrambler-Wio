@@ -1,0 +1,22 @@
+
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_LCD/TFT_Interface.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_LCD/TFT_eSPI.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/SPI/SPI.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Adafruit_ZeroDMA/Adafruit_ZeroDMA.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/SD/Seeed_SD.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/SD/Seeed_sdcard_hal.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/SD/sd_diskio_crc.c
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/SDMMC/Seeed_SDMMC.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/SDMMC/Seeed_SDMMC_Interface.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/Seeed_FS.cpp
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/fatfs/ccsbcs.c
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/fatfs/diskio.c
+Using cached library dependencies for file: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB/src/fatfs/ff.c
+
+Using library Seeed_Arduino_LCD at version 1.6.0 in folder: /home/bob/Arduino/libraries/Seeed_Arduino_LCD 
+Using library SPI at version 1.0 in folder: /home/bob/Arduino/libraries/SPI 
+Using library Adafruit Zero DMA Library at version 1.0.4 in folder: /home/bob/Arduino/libraries/Adafruit_ZeroDMA 
+Using library Seeed Arduino FS at version 2.1.1 in folder: /home/bob/Arduino/libraries/Seeed_Arduino_FS_SCB 
+
+Sketch uses 71232 bytes (14%) of program storage space. Maximum is 507904 bytes.
+
